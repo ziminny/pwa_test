@@ -1,57 +1,54 @@
-import React, { useEffect, useState } from "react";
+import React,{useState} from "react"
+import fetchWeather from "./api/fetchWeather"
 import PWAPrompt from 'react-ios-pwa-prompt'
-import AddToHomeScreen from '@ideasio/add-to-homescreen-react';
-// import AddToHomeScreen from '@ideasio/add-to-homescreen-react';
+import "./App.css"
+const App = () => {
+  const [query,setQuery] = useState('')
+  const [weather,setWeather] = useState({})
 
+  const search = async (e) => {
+    if(e.key === 'Enter') {
+      const data = await fetchWeather(query)
 
-const InstallPWA = () => {
-  const [supportsPWA, setSupportsPWA] = useState(false);
-  const [promptInstall, setPromptInstall] = useState(null);
-
-  useEffect(() => {
-    window.addEventListener('appinstalled', () => {
-      // Hide the app-provided install promotion
-      console.log("por favor DEUS");
-      // Clear the deferredPrompt so it can be garbage collected
-    
-      // Optionally, send analytics event to indicate successful install
-      console.log('PWA was installed');
-    });
-    const handler = e => {
-      e.preventDefault();
-      console.log("we are being triggered :D");
-      setSupportsPWA(true);
-      setPromptInstall(e);
-    };
-    
-    window.addEventListener("beforeinstallprompt", handler);
-    console.log(promptInstall);
-    return () => window.removeEventListener("transitionend", handler);
-  }, [promptInstall]);
-
-  const onClick = evt => {
-    evt.preventDefault();
-    if (!promptInstall) {
-      return;
+      setWeather(data);
+      setQuery('')
     }
-    promptInstall.prompt();
-  };
-
-  // return <AddToHomeScreen></AddToHomeScreen>;
-  if (!supportsPWA) {
-    return <PWAPrompt promptOnVisit={1} timesToShow={3} copyClosePrompt="Close" permanentlyHideOnDismiss={false}/>;
   }
   return (
-    <button
-      className="link-button"
-      id="setup_button"
-      aria-label="Install app"
-      title="Install app"
-      onClick={onClick}
-    >
-      Install
-    </button>
-  );
-};
+    <>
+    <PWAPrompt promptOnVisit={1} timesToShow={3} copyClosePrompt="Close" permanentlyHideOnDismiss={false}/>;
+    <div className="main-container">
+       <input
+         type="text"
+         className="search"
+         placeholder="Search..."
+         onChange={ (e) => setQuery(e.target.value)}
+         value={query}
+         onKeyPress={search}
+       />
+       {
+         weather.main && (
+            <div className="city">
+              <h2 className="city-name">
+                <span>{weather.name}</span>
+                <sup>{weather.sys.country}</sup>
+              </h2>
+              
+              <div className="city-temp">
+                 {Math.round(weather.main.temp)}
+                 <sup>&deg;C</sup>
+              </div>
 
-export default InstallPWA;
+              <div className="info">
+                 {/* <img className="city-icon" src={`https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`}/> */}
+              </div>
+
+            </div>
+         )
+       }
+    </div>
+    </>
+  )
+}
+
+export default App;
